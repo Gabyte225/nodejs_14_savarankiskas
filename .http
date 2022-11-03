@@ -1,0 +1,14 @@
+
+### order info
+POST http://localhost:5003/api/orders
+Content-Type: application/json
+
+{
+    "name_surname": "Barbara King",
+    "email": "Barbara@email.com",
+    "phone": "+37062477777",
+    "description": "Test7",
+    "dimensions": "80X80",
+    "color": "Dark red"
+}
+
