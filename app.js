@@ -23,119 +23,66 @@ mongoose
 const Order = require("./models/order.model.js");
 
 //Routes
-// -- POST /api/users/signup  | User signup (creates new user)
+// -- POST /api/orders  | creates new order
 
 app.post("/api/orders", async (req, res) => {
   const newOrderData = req.body;
   try {
     const newOrder = new Order(newOrderData);
     const createdOrder = await newOrder.save();
-
+    console.log({ order: createdOrder });
     res.json({ message: "Order created", order: createdOrder });
   } catch (error) {
     console.log(error);
   }
 });
 
-//-- POST /api/users/login    | User login (connects existing user)
+//-- GET /api/orders          | Get all orders
 
-app.post("/api/users/login", async (req, res) => {
-  const userData = req.body;
+app.get("/api/orders", async (req, res) => {
+  const newOrdersData = req.params;
   try {
-    const user = await User.findOne(userData);
-    if (user) {
-      res.json({ message: "User found", user });
-    } else {
-      res.json({ message: "User with given email and password not found" });
-    }
+    const allOrders = await Order.find(newOrdersData);
+    res.json(allOrders);
   } catch (error) {
     console.log(error);
   }
 });
 
-//-- POST /api/movies         | Movie creation (creates new movie)
+//-- PUT /api/orders/:id      | update status and portfolio info
 
-app.post("/api/movies", async (req, res) => {
-  const movieData = req.body;
-  const { userId } = movieData;
+app.put("/api/orders/:id", async (req, res) => {
+  const orderId = req.params.id;
+  const order = { ...req.body };
   try {
-    const user = await User.findById(userId);
-    const currentMovies = user.movies;
-
-    await User.findByIdAndUpdate(userId, {
-      movies: [...currentMovies, movieData],
+    const admin = await Order.findById(orderId);
+    const currentOrder = admin.portfolio;
+    
+    const updatePortfolio = await Order.findByIdAndUpdate(orderId, {
+      completed: true,
+      portfolio: [...currentOrder, order],
     });
 
-    const uppdatedUser = await User.findById(userId);
-
-    res.json({ message: "Movie added", user: uppdatedUser });
+    res.json({ message: "Order completed", updatePortfolio });
   } catch (error) {
     console.log(error);
   }
 });
 
-//-- GET /api/movies          | Movie listing (retrieving all movies)
+//-- GET /api/portfolio          | Get all done orders
 
-app.get("/api/movies", async (req, res) => {
+app.get("/api/portfolio", async (req, res) => {
   try {
-    const users = await User.find();
-    const availableMovies = users.reduce((total, item) => {
-      item.movies.forEach((movie) => {
-        if (movie.is_available) {
-          total.push(movie);
+    const portfolios = await Order.find();
+    const doneOrders = portfolios.reduce((total, items) => {
+      items.portfolio.forEach((portfolio) => {
+        if ((completed = true)) {
+          total.push(portfolio);
         }
       });
-
       return total;
     }, []);
-    console.log(availableMovies);
-  } catch (error) {
-    console.log(error);
-  }
-});
-
-//-- GET /api/user/:id        | User information (retrieving user information and his movies and orders)
-
-app.get("/api/user/:id ", async (req, res) => {
-  const userId = req.params.id;
-  try {
-    const user = await User.findById(userId);
-    res.json(user);
-  } catch (error) {
-    console.log(error);
-  }
-});
-
-//-- PUT /api/movies/:id      | Movie update and order creation
-
-app.put("/api/movies/:id", async (req, res) => {
-  const userId = req.params.id; // whitch rents a movie
-  const order = {
-    ...req.body,
-    return_days: 30,
-  };
-  try {
-    //updating user whitch rents a movie order status
-    const tenant = await User.findById(userId);
-    const currentOrders = tenant.orders;
-
-    await User.findByIdAndUpdate(userId, {
-      orders: [...currentOrders, order],
-    });
-
-    //updating user who's movie is rented movie status
-    const movieOwner = await User.findById(order.movieOwnerId);
-    const updatedOwnerMovies = movieOwner.movies.map((movie) => {
-      if (movie.movie_name === order.movie_name) {
-        movie.is_available = false;
-      }
-      return movie;
-    });
-
-    await User.findByIdAndUpdate(order.movieOwnerId, {
-      movies: updatedOwnerMovies,
-    });
-    res.json({ message: "Movie rented" });
+    res.json(doneOrders);
   } catch (error) {
     console.log(error);
   }

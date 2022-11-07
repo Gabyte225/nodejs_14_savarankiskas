@@ -25,10 +25,10 @@ const orderShema = mongoose.Schema({
     type: String,
     require: true,
   },
-  status: {
-    type: String,
+  completed: {
+    type: Boolean,
     require: true,
-    default: "In-progress",
+    default: false,
   },
   portfolio: {
     type: Array,
